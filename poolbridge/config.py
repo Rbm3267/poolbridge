@@ -129,7 +129,11 @@ DEFAULT_LAYERS: Dict[str, int] = {
     "V-NODE-TEXT": _ACI_WHITE,
     "V-PROP": _ACI_RED,
     "V-TOPO-SPOT": _ACI_CYAN,
+    "V-TOPO-MAJR": _ACI_CYAN,    # major contours
+    "V-TOPO-MINR": _ACI_CYAN,    # minor contours
     "V-BLDG": _ACI_WHITE,
+    "V-EASEMENT": _ACI_YELLOW,   # easement reference lines
+    "V-SETBACK": _ACI_YELLOW,    # setback reference lines
     "V-UTIL-ELEC": _ACI_YELLOW,
     "V-UTIL-GAS": _ACI_MAGENTA,
     "V-UTIL-WATR": _ACI_BLUE,

@@ -26,6 +26,7 @@ setup(
         "pandas>=1.5.0",
         "pyyaml>=6.0",
         "numpy>=1.23.0",
+        "pyshp>=2.3.0",
     ],
     extras_require={
         "dev": ["pytest>=7.0"],

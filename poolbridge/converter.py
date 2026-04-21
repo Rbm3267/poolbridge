@@ -11,6 +11,7 @@ import pandas as pd
 
 from poolbridge.config import load_config, get_feature_config
 from poolbridge.dxf_writer import DXFWriter, export_penzd_csv
+from poolbridge.readers import read_file
 from poolbridge.localization import (
     METERS_TO_US_SURVEY_FEET,
     apply_transform_dataframe,
@@ -116,9 +117,9 @@ class PoolBridgeConverter:
         """
         warn_messages: List[str] = []
 
-        # --- Stage 1: Load CSV ------------------------------------------------
-        logger.info("Stage 1: Loading CSV from %s", input_csv)
-        df = self._load_csv(input_csv)
+        # --- Stage 1: Load file (CSV, PENZD, KML, Shapefile, or DXF) ----------
+        logger.info("Stage 1: Loading %s", input_csv)
+        df = self._load_file(input_csv)
 
         # --- Validate ---------------------------------------------------------
         validation_warns = validate_dataframe(df)
@@ -173,26 +174,13 @@ class PoolBridgeConverter:
     # Stage implementations
     # ------------------------------------------------------------------
 
+    def _load_file(self, path: str) -> pd.DataFrame:
+        """Load any supported Emlid export format via the readers module."""
+        return read_file(path)
+
     def _load_csv(self, csv_path: str) -> pd.DataFrame:
-        """Load Emlid Flow CSV with UTF-8 BOM support."""
-        path = Path(csv_path)
-        if not path.exists():
-            raise FileNotFoundError(f"Input CSV not found: {csv_path}")
-
-        df = pd.read_csv(path, encoding=_CSV_ENCODING, dtype=str)
-        df.columns = [c.strip() for c in df.columns]
-
-        # Strip whitespace from all string cells
-        df = df.apply(lambda col: col.str.strip() if col.dtype == object else col)
-
-        # Convert numeric columns
-        for col in ("Easting", "Northing", "Elevation", "Longitude", "Latitude",
-                    "Ellipsoidal height"):
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors="coerce")
-
-        logger.info("Loaded %d points from %s", len(df), csv_path)
-        return df
+        """Backwards-compatible alias for _load_file."""
+        return self._load_file(csv_path)
 
     def _parse_feature_codes(self, df: pd.DataFrame) -> pd.DataFrame:
         """Split Code column into base_code and code_number for smart features."""
@@ -219,21 +207,58 @@ class PoolBridgeConverter:
         df: pd.DataFrame,
         target_crs_override: Optional[str],
     ) -> Tuple[pd.DataFrame, Optional[str]]:
-        """Reproject if source/target CRS are configured and differ."""
+        """Reproject if source/target CRS are configured and differ.
+
+        Respects the Emlid 'Origin' column: points tagged 'Local' already
+        carry projected E/N and are excluded from reprojection so they are
+        not double-transformed.
+        """
         crs_cfg = self.config.get("coordinate_system", {})
         source_crs = crs_cfg.get("source_crs", "EPSG:4326")
         target_crs = target_crs_override or crs_cfg.get("target_crs")
 
+        # Check Origin column — Local points must skip reprojection
+        warn: Optional[str] = None
+        if "Origin" in df.columns:
+            origins = df["Origin"].astype(str).str.strip().str.lower()
+            all_local = (origins == "local").all()
+            any_local = (origins == "local").any()
+            any_global = origins.isin(["global", "nan", ""]).any()
+
+            if all_local:
+                logger.info("All points have Local origin; skipping reprojection.")
+                return df, None
+
+            if any_local and any_global:
+                warn = (
+                    "Mixed Local/Global origins detected. Only Global points will be "
+                    "reprojected; Local points use their Easting/Northing as-is."
+                )
+                logger.warning(warn)
+                if not target_crs:
+                    return df, warn
+                global_mask = ~(origins == "local")
+                df_global = df[global_mask].copy()
+                df_local = df[~global_mask].copy()
+                try:
+                    df_global = reproject_dataframe(df_global, source_crs, target_crs)
+                except Exception as exc:
+                    raise RuntimeError(
+                        f"Reprojection from {source_crs} to {target_crs} failed: {exc}"
+                    ) from exc
+                df = pd.concat([df_local, df_global]).sort_index()
+                return df, warn
+
         if not target_crs:
-            warn = (
+            no_crs_warn = (
                 "No target CRS configured — using Easting/Northing columns as-is. "
                 "Set coordinate_system.target_crs in your config if reprojection is needed."
             )
-            return df, warn
+            return df, no_crs_warn
 
         if source_crs.upper() == (target_crs or "").upper():
             logger.info("Source and target CRS match (%s); skipping reprojection", source_crs)
-            return df, None
+            return df, warn
 
         try:
             df = reproject_dataframe(df, source_crs, target_crs)
@@ -242,7 +267,7 @@ class PoolBridgeConverter:
                 f"Reprojection from {source_crs} to {target_crs} failed: {exc}"
             ) from exc
 
-        return df, None
+        return df, warn
 
     def _localize(
         self,

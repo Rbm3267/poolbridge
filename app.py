@@ -8,6 +8,7 @@ import streamlit as st
 import yaml
 
 from poolbridge.converter import PoolBridgeConverter
+from poolbridge.readers import read_file
 
 st.set_page_config(
     page_title="Poolbridge",
@@ -103,20 +104,34 @@ with st.sidebar:
 # Main area
 # ---------------------------------------------------------------------------
 
-st.header("Step 1 — Upload your Emlid CSV")
-csv_file = st.file_uploader(
-    "Drag and drop your Emlid Flow CSV export here",
-    type=["csv"],
+st.header("Step 1 — Upload your Emlid survey file")
+st.caption(
+    "Supported formats: **CSV** (Emlid Flow full export), **PENZD CSV** (.csv/.txt), "
+    "**KML** (.kml), **Shapefile** (.zip containing .shp/.dbf/.shx), **DXF** (.dxf)"
+)
+survey_file = st.file_uploader(
+    "Drag and drop your Emlid survey file here",
+    type=["csv", "txt", "kml", "zip", "dxf"],
     label_visibility="collapsed",
 )
 
 df_preview = None
-if csv_file:
-    df_preview = pd.read_csv(csv_file, encoding="utf-8-sig", dtype=str)
-    csv_file.seek(0)
-    st.success(f"{len(df_preview)} points loaded from **{csv_file.name}**")
-    with st.expander("Preview points"):
-        st.dataframe(df_preview, use_container_width=True)
+if survey_file:
+    with tempfile.NamedTemporaryFile(
+        suffix=os.path.splitext(survey_file.name)[1], delete=False
+    ) as tmp:
+        tmp.write(survey_file.getvalue())
+        tmp_path = tmp.name
+    try:
+        df_preview = read_file(tmp_path)
+        st.success(f"{len(df_preview)} points loaded from **{survey_file.name}**")
+        with st.expander("Preview points"):
+            st.dataframe(df_preview, use_container_width=True)
+    except Exception as exc:
+        st.error(f"Could not read file: {exc}")
+        df_preview = None
+    finally:
+        os.unlink(tmp_path)
 
 st.divider()
 st.header("Step 2 — Config file (optional)")
@@ -133,15 +148,16 @@ config_file = st.file_uploader(
 st.divider()
 st.header("Step 3 — Convert")
 
-ready = csv_file is not None
+ready = survey_file is not None and df_preview is not None
 if st.button("Convert to DXF", type="primary", disabled=not ready):
     with st.spinner("Running conversion…"):
         try:
             with tempfile.TemporaryDirectory() as tmpdir:
-                # Write CSV to temp file
-                csv_path = os.path.join(tmpdir, "input.csv")
-                with open(csv_path, "wb") as f:
-                    f.write(csv_file.getvalue())
+                # Write survey file to temp location preserving extension
+                ext = os.path.splitext(survey_file.name)[1]
+                input_path = os.path.join(tmpdir, f"input{ext}")
+                with open(input_path, "wb") as f:
+                    f.write(survey_file.getvalue())
 
                 # Build or write config
                 if config_file:
@@ -174,7 +190,7 @@ if st.button("Convert to DXF", type="primary", disabled=not ready):
 
                 output_dxf = os.path.join(tmpdir, "output.dxf")
                 converter = PoolBridgeConverter(config_path)
-                result = converter.convert(input_csv=csv_path, output_dxf=output_dxf)
+                result = converter.convert(input_csv=input_path, output_dxf=output_dxf)
 
                 st.success(
                     f"Done — **{result.point_count} points** converted successfully."
@@ -197,7 +213,7 @@ if st.button("Convert to DXF", type="primary", disabled=not ready):
 
                 with open(output_dxf, "rb") as f:
                     dxf_bytes = f.read()
-                stem = os.path.splitext(csv_file.name)[0]
+                stem = os.path.splitext(survey_file.name)[0]
                 col1.download_button(
                     "⬇ Download DXF",
                     dxf_bytes,

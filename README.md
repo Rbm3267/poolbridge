@@ -37,7 +37,11 @@ so designers can focus on design, not data wrangling.
 ```bash
 pip install poolbridge
 
+# From any Emlid export format
 poolbridge convert survey.csv -c config.yaml -o pool_site.dxf
+poolbridge convert survey.kml  -c config.yaml -o pool_site.dxf
+poolbridge convert survey.zip  -c config.yaml -o pool_site.dxf  # Shapefile in ZIP
+poolbridge convert survey.dxf  -c config.yaml -o pool_site.dxf
 ```
 
 Or in Python:
@@ -56,15 +60,29 @@ See [examples/](examples/) for a complete sample survey and config.
 
 ## Features
 
-- **Emlid Flow CSV import** — handles UTF-8 BOM encoding, all standard columns
+### Input Formats
+
+All Emlid export formats are supported out of the box:
+
+| Format | Extension | Notes |
+|--------|-----------|-------|
+| Emlid Flow CSV | `.csv` | Full-attribute export with BOM handling |
+| PENZD CSV | `.csv` / `.txt` | Point/Easting/Northing/Z/Description |
+| Google Earth KML | `.kml` | Extracts Placemark/Point features |
+| Shapefile | `.zip` | ZIP archive containing `.shp`/`.dbf`/`.shx` |
+| Emlid DXF | `.dxf` | Re-layers a bare Emlid point-dump DXF |
+
+### Conversion Pipeline
+
 - **Coordinate reprojection** — WGS84 → any UTM zone or US State Plane via pyproj
+- **Origin-aware** — Emlid "Local" points (already projected) are never double-transformed
 - **Two-point localization** — aligns survey to deed/design coordinates with a
   rigid-body transform (rotation + translation)
 - **Helmert least-squares** — 3+ control points with residual reporting and RMS output
 - **AIA NCS V6 layer structure** — V-BLDG, V-PROP, V-TOPO-SPOT, V-PLNT-TREE,
-  V-UTIL-*, V-SURV-CTRL, and more
-- **Pool Studio DXF header** — `$INSUNITS=2` (decimal feet), `$PDMODE=35`,
-  `$PDSIZE=0.5` set automatically
+  V-UTIL-*, V-SURV-CTRL, V-EASEMENT, V-SETBACK, and more
+- **Pool Studio DXF header** — `$INSUNITS=2` (decimal feet), `$MEASUREMENT=0` (imperial),
+  `$PDMODE=35`, `$PDSIZE=0.5` set automatically
 - **Smart features**:
   - Auto-draws drip-line circles for trees (`D=14'` in Description → CIRCLE)
   - Auto-connects property corners (PC-1…PC-4) and house corners (HC-1…HC-4)
@@ -184,6 +202,8 @@ See [docs/config.md](docs/config.md) for the full reference.
 
 ## DXF Layer Structure
 
+AIA NCS V6 layer naming, compatible with Pool Studio, AutoCAD, and Vectorworks:
+
 | Layer | Color | Contents |
 |-------|-------|----------|
 | `V-NODE` | White | Generic survey points |
@@ -191,12 +211,16 @@ See [docs/config.md](docs/config.md) for the full reference.
 | `V-PROP` | Red | Property boundary polyline + corners |
 | `V-BLDG` | White | House footprint polyline + corners |
 | `V-TOPO-SPOT` | Cyan | Grade shots with elevation text |
+| `V-TOPO-MAJR` | Cyan | Major contours |
+| `V-TOPO-MINR` | Cyan | Minor contours |
 | `V-PLNT-TREE` | Green | Trees and drip-line circles |
 | `V-UTIL-ELEC` | Yellow | Electrical |
 | `V-UTIL-GAS` | Magenta | Gas |
 | `V-UTIL-WATR` | Blue | Water |
 | `V-UTIL-SEWR` | Green | Sewer / drainage |
 | `V-SURV-CTRL` | Magenta | Control points and benchmarks |
+| `V-EASEMENT` | Yellow | Easement reference lines |
+| `V-SETBACK` | Yellow | Setback reference lines |
 
 ---
 
@@ -223,7 +247,7 @@ in a few seconds on next visit.
 ```bash
 pip install pytest
 pytest tests/ -v
-# 70 passed
+# 110 passed
 ```
 
 CI runs automatically on every pull request via GitHub Actions (Python 3.9, 3.11, 3.12).

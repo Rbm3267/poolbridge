@@ -14,8 +14,10 @@ from poolbridge.config import collect_layers, get_feature_config
 
 logger = logging.getLogger(__name__)
 
-# Pool Studio requires $INSUNITS=2 (decimal feet), $PDMODE=35 (X+circle), $PDSIZE=0.5
+# Pool Studio requires $INSUNITS=2 (decimal feet), $MEASUREMENT=0 (imperial),
+# $PDMODE=35 (X+circle), $PDSIZE=0.5
 _INSUNITS_DECIMAL_FEET = 2
+_MEASUREMENT_IMPERIAL = 0
 _PDMODE_X_CIRCLE = 35
 _DEFAULT_PDSIZE = 0.5
 _DEFAULT_TEXT_HEIGHT = 0.5
@@ -69,6 +71,7 @@ class DXFWriter:
         version = self.output_cfg.get("dxf_version", "R2010")
         doc = ezdxf.new(version)
         doc.header["$INSUNITS"] = _INSUNITS_DECIMAL_FEET
+        doc.header["$MEASUREMENT"] = _MEASUREMENT_IMPERIAL
         doc.header["$PDMODE"] = self.pdmode
         doc.header["$PDSIZE"] = self.pdsize
         doc.header["$LTSCALE"] = 0.5
