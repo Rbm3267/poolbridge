@@ -27,6 +27,9 @@ setup(
         "pyyaml>=6.0",
         "numpy>=1.23.0",
     ],
+    extras_require={
+        "dev": ["pytest>=7.0"],
+    },
     entry_points={
         "console_scripts": [
             "poolbridge=poolbridge.cli:main",
