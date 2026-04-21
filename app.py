@@ -26,17 +26,27 @@ with st.sidebar:
 
     st.subheader("Coordinate System")
     crs_options = {
+        # --- Gulf Coast / South Central ---
+        "UTM Zone 13N — west Texas / New Mexico": "EPSG:32613",
         "UTM Zone 14N — central Texas": "EPSG:32614",
         "UTM Zone 15N — east Texas / Louisiana": "EPSG:32615",
-        "UTM Zone 13N — west Texas / New Mexico": "EPSG:32613",
-        "UTM Zone 16N — Tennessee / Kentucky": "EPSG:32616",
-        "UTM Zone 17N — Florida / Georgia": "EPSG:32617",
         "TX State Plane Central (US ft)": "EPSG:2277",
         "TX State Plane S. Central (US ft)": "EPSG:2278",
         "TX State Plane South (US ft)": "EPSG:2279",
-        "FL State Plane East (US ft)": "EPSG:2239",
-        "FL State Plane West (US ft)": "EPSG:2240",
+        # --- Southeast ---
+        "UTM Zone 16N — AL, MS, TN, KY, western GA": "EPSG:32616",
+        "UTM Zone 17N — GA, SC, NC, VA (central/western)": "EPSG:32617",
+        "UTM Zone 18N — NC, VA (eastern / coast)": "EPSG:32618",
+        "NC State Plane (US ft)": "EPSG:2264",
+        "VA State Plane North (US ft)": "EPSG:2283",
+        "VA State Plane South (US ft)": "EPSG:2284",
+        # --- Florida ---
+        "FL State Plane East (US ft)": "EPSG:2236",
+        "FL State Plane West (US ft)": "EPSG:2237",
+        "FL State Plane North (US ft)": "EPSG:2238",
+        # --- West Coast ---
         "CA Zone III (US ft)": "EPSG:2227",
+        # --- Custom ---
         "Custom EPSG…": "custom",
     }
     crs_label = st.selectbox("Target CRS", list(crs_options.keys()))
