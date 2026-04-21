@@ -3,8 +3,21 @@
 **Convert Emlid Reach RTK survey data to Structure Studios Pool Studio DXF format.**
 
 Poolbridge bridges the gap between modern GNSS field workflows and legacy pool
-design software. Export a CSV from Emlid Flow, run one command, and open a
-fully layered DXF in Pool Studio (or AutoCAD / Vectorworks) in seconds.
+design software. Export a CSV from Emlid Flow, run one command or use the web
+app, and open a fully layered DXF in Pool Studio (or AutoCAD / Vectorworks) in
+seconds.
+
+---
+
+## Web App
+
+The easiest way to use poolbridge — no installation required.
+
+Upload your Emlid CSV, choose your coordinate system from the sidebar, enter
+your control points, and download the DXF.
+
+> **[Launch Poolbridge Web App →](https://share.streamlit.io)**
+> *(deploy your own free instance — see [Deploying the Web App](#deploying-the-web-app) below)*
 
 ---
 
@@ -19,7 +32,7 @@ so designers can focus on design, not data wrangling.
 
 ---
 
-## Quick Start
+## Quick Start (CLI)
 
 ```bash
 pip install poolbridge
@@ -62,6 +75,24 @@ See [examples/](examples/) for a complete sample survey and config.
 - **Secondary PENZD CSV** export for stakeout re-import into Emlid Flow
 - **Z datum control** — set project elevation zero from a named point (e.g. FFE)
   or apply a fixed offset
+- **Streamlit web interface** — no-install browser UI for non-technical users
+
+---
+
+## Supported Coordinate Systems
+
+The web app and CLI support all EPSG coordinate systems via pyproj. Common
+presets in the web app dropdown:
+
+| Region | Options |
+|--------|---------|
+| Texas | UTM 13N–15N, TX State Plane Central / S. Central / South |
+| Southeast | UTM 16N (AL/MS/TN/KY/western GA), UTM 17N (GA/SC/NC/VA central), UTM 18N (NC/VA coast) |
+| North Carolina | UTM 17N, UTM 18N, NC State Plane (US ft) |
+| Virginia | UTM 17N, UTM 18N, VA State Plane North/South (US ft) |
+| Florida | FL State Plane East / West / North (US ft) |
+| California | CA Zone III (US ft) |
+| Any other | Custom EPSG code input |
 
 ---
 
@@ -87,16 +118,20 @@ See [docs/setup.md](docs/setup.md) for dependency details and troubleshooting.
 
 ## Usage
 
+### Web App
+
+See [Deploying the Web App](#deploying-the-web-app) to get a shareable URL.
+
 ### CLI
 
 ```bash
-# Basic conversion (uses built-in defaults, no localization)
+# Basic conversion (no localization)
 poolbridge convert survey.csv --crs EPSG:32614 --no-localize -o output.dxf
 
 # With config file (recommended)
 poolbridge convert survey.csv -c project.yaml -o pool_site.dxf
 
-# Verbose output (shows reprojection + localization steps)
+# Verbose output
 poolbridge convert survey.csv -c project.yaml -o pool_site.dxf -v
 
 # Override Z datum offset
@@ -165,12 +200,33 @@ See [docs/config.md](docs/config.md) for the full reference.
 
 ---
 
+## Deploying the Web App
+
+Poolbridge includes a Streamlit web interface (`app.py`) that non-technical
+users can use without installing anything.
+
+### Streamlit Community Cloud (free)
+
+1. Go to **[share.streamlit.io](https://share.streamlit.io)** and sign in with GitHub
+2. Click **New app**
+3. Set **Repository** → `rbm3267/poolbridge`, **Branch** → `main`, **Main file** → `app.py`
+4. Click **Deploy**
+
+The app will install all dependencies automatically and give you a shareable
+public URL. Apps on the free tier sleep after ~7 days of inactivity and wake
+in a few seconds on next visit.
+
+---
+
 ## Running Tests
 
 ```bash
 pip install pytest
 pytest tests/ -v
+# 70 passed
 ```
+
+CI runs automatically on every pull request via GitHub Actions (Python 3.9, 3.11, 3.12).
 
 ---
 
