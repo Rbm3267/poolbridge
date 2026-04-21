@@ -1,2 +1,203 @@
 # poolbridge
-Convert Emlid Reach surveying data to Structure Studios Pool Studio DXF format.
+
+**Convert Emlid Reach RTK survey data to Structure Studios Pool Studio DXF format.**
+
+Poolbridge bridges the gap between modern GNSS field workflows and legacy pool
+design software. Export a CSV from Emlid Flow, run one command, and open a
+fully layered DXF in Pool Studio (or AutoCAD / Vectorworks) in seconds.
+
+---
+
+## Problem Statement
+
+Pool designers need accurate site surveys — setbacks, house footprint, grade,
+trees, utilities — before they can model a pool. RTK GNSS equipment like the
+Emlid Reach RS2/RS3 delivers centimetre-level accuracy, but exports data in
+WGS84 CSV format that Pool Studio cannot import. Poolbridge handles the
+reprojection, coordinate localization, unit conversion, and layer structuring
+so designers can focus on design, not data wrangling.
+
+---
+
+## Quick Start
+
+```bash
+pip install poolbridge
+
+poolbridge convert survey.csv -c config.yaml -o pool_site.dxf
+```
+
+Or in Python:
+
+```python
+from poolbridge import PoolBridgeConverter
+
+converter = PoolBridgeConverter("config.yaml")
+result = converter.convert("survey.csv", "pool_site.dxf")
+print(result)
+```
+
+See [examples/](examples/) for a complete sample survey and config.
+
+---
+
+## Features
+
+- **Emlid Flow CSV import** — handles UTF-8 BOM encoding, all standard columns
+- **Coordinate reprojection** — WGS84 → any UTM zone or US State Plane via pyproj
+- **Two-point localization** — aligns survey to deed/design coordinates with a
+  rigid-body transform (rotation + translation)
+- **Helmert least-squares** — 3+ control points with residual reporting and RMS output
+- **AIA NCS V6 layer structure** — V-BLDG, V-PROP, V-TOPO-SPOT, V-PLNT-TREE,
+  V-UTIL-*, V-SURV-CTRL, and more
+- **Pool Studio DXF header** — `$INSUNITS=2` (decimal feet), `$PDMODE=35`,
+  `$PDSIZE=0.5` set automatically
+- **Smart features**:
+  - Auto-draws drip-line circles for trees (`D=14'` in Description → CIRCLE)
+  - Auto-connects property corners (PC-1…PC-4) and house corners (HC-1…HC-4)
+    as closed polylines
+  - Elevation callouts on grade shots (GR codes)
+  - `FFE=` prefix labels on finished floor points
+- **YAML/JSON config** — map any custom survey code to a layer, color, and behaviour
+- **Secondary PENZD CSV** export for stakeout re-import into Emlid Flow
+- **Z datum control** — set project elevation zero from a named point (e.g. FFE)
+  or apply a fixed offset
+
+---
+
+## Installation
+
+**Requirements:** Python 3.8+
+
+```bash
+pip install poolbridge
+```
+
+Or from source:
+
+```bash
+git clone https://github.com/rbm3267/poolbridge.git
+cd poolbridge
+pip install -e .
+```
+
+See [docs/setup.md](docs/setup.md) for dependency details and troubleshooting.
+
+---
+
+## Usage
+
+### CLI
+
+```bash
+# Basic conversion (uses built-in defaults, no localization)
+poolbridge convert survey.csv --crs EPSG:32614 --no-localize -o output.dxf
+
+# With config file (recommended)
+poolbridge convert survey.csv -c project.yaml -o pool_site.dxf
+
+# Verbose output (shows reprojection + localization steps)
+poolbridge convert survey.csv -c project.yaml -o pool_site.dxf -v
+
+# Override Z datum offset
+poolbridge convert survey.csv -c project.yaml --z-offset -179.845 -o output.dxf
+```
+
+### Config File (YAML)
+
+```yaml
+coordinate_system:
+  source_crs: "EPSG:4326"
+  target_crs: "EPSG:32614"   # UTM Zone 14N (central Texas)
+
+localization:
+  method: "two_point"
+  control_points:
+    - name: "CP-1"
+      known_easting: 0.0
+      known_northing: 0.0
+    - name: "CP-2"
+      known_easting: 100.0
+      known_northing: 0.0
+
+z_datum:
+  method: "point"
+  reference_point: "FF-1"   # This point's elevation becomes 0.00
+
+feature_codes:
+  HC:
+    layer: "V-BLDG"
+    color: 7
+    auto_connect: true
+  PC:
+    layer: "V-PROP"
+    color: 1
+    auto_connect: true
+  GR:
+    layer: "V-TOPO-SPOT"
+    color: 4
+    label_elevation: true
+  TR:
+    layer: "V-PLNT-TREE"
+    color: 3
+    draw_drip_circle: true
+```
+
+See [docs/config.md](docs/config.md) for the full reference.
+
+---
+
+## DXF Layer Structure
+
+| Layer | Color | Contents |
+|-------|-------|----------|
+| `V-NODE` | White | Generic survey points |
+| `V-NODE-TEXT` | White | Point name labels |
+| `V-PROP` | Red | Property boundary polyline + corners |
+| `V-BLDG` | White | House footprint polyline + corners |
+| `V-TOPO-SPOT` | Cyan | Grade shots with elevation text |
+| `V-PLNT-TREE` | Green | Trees and drip-line circles |
+| `V-UTIL-ELEC` | Yellow | Electrical |
+| `V-UTIL-GAS` | Magenta | Gas |
+| `V-UTIL-WATR` | Blue | Water |
+| `V-UTIL-SEWR` | Green | Sewer / drainage |
+| `V-SURV-CTRL` | Magenta | Control points and benchmarks |
+
+---
+
+## Running Tests
+
+```bash
+pip install pytest
+pytest tests/ -v
+```
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [docs/setup.md](docs/setup.md) | Installation and requirements |
+| [docs/workflow.md](docs/workflow.md) | End-to-end workflow guide |
+| [docs/config.md](docs/config.md) | Complete config file reference |
+| [docs/technical.md](docs/technical.md) | Pipeline internals, localization math, known limitations |
+
+---
+
+## Contributing
+
+Contributions are welcome. Please open an issue before submitting a large pull request.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Write tests for your change
+4. Open a pull request against `main`
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for full text.
+
+Copyright (c) 2026 Bennett Moore

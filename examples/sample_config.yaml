@@ -1,0 +1,155 @@
+# poolbridge sample configuration
+# Run with: poolbridge convert sample_emlid_export.csv -c sample_config.yaml -o site_plan.dxf
+
+# -------------------------------------------------------------------
+# Coordinate System
+# -------------------------------------------------------------------
+coordinate_system:
+  # Source CRS: Emlid Flow exports WGS84 geographic coordinates (lat/lon)
+  # in the Longitude/Latitude columns. When source_crs is EPSG:4326, poolbridge
+  # uses those columns for reprojection.
+  source_crs: "EPSG:4326"
+
+  # Target CRS: UTM Zone 14N covers central Texas. Change to your local
+  # UTM zone or State Plane (e.g. "EPSG:32615" for UTM 15N,
+  # "EPSG:2277" for Texas State Plane Central).
+  target_crs: "EPSG:32614"
+
+# -------------------------------------------------------------------
+# Units
+# -------------------------------------------------------------------
+units:
+  # Pool Studio works in decimal feet. Set to false only if your DXF
+  # target application expects meters.
+  convert_to_feet: true
+
+# -------------------------------------------------------------------
+# Localization (site orientation)
+# -------------------------------------------------------------------
+# Localization aligns the survey to a local project coordinate system
+# by matching measured control points to known design coordinates.
+#
+# For this sample: CP-1 maps to local (0, 0) and CP-2 maps to (30, 0),
+# placing the project origin at the NW monument with east as +X.
+localization:
+  method: "two_point"   # "two_point" (exact) or "helmert" (least-squares, 3+ pts)
+
+  control_points:
+    - name: "CP-1"            # Must match the Name column in the CSV exactly
+      known_easting: 0.0      # Known local easting (meters, before unit conversion)
+      known_northing: 0.0     # Known local northing (meters, before unit conversion)
+
+    - name: "CP-2"
+      known_easting: 30.0
+      known_northing: 0.0
+
+# -------------------------------------------------------------------
+# Z Datum
+# -------------------------------------------------------------------
+z_datum:
+  # "offset": add a constant value (in meters) to all elevations.
+  # "point": use the elevation of a named point as zero (floor level).
+  method: "point"
+  reference_point: "FF-1"   # Use the finished floor elevation as the project 0.00
+
+  # Uncomment to use a simple numeric offset instead:
+  # method: "offset"
+  # offset: -179.845   # Subtract the base elevation to set site datum to 0
+
+# -------------------------------------------------------------------
+# Output Settings
+# -------------------------------------------------------------------
+output:
+  dxf_version: "R2010"    # DXF version; R2010 is broadly compatible
+  pdmode: 35              # Point display: X inside a circle (Pool Studio default)
+  pdsize: 0.5             # Point symbol size in output units (feet)
+  text_height: 0.5        # Label text height in output units (feet)
+  export_penzd_csv: true  # Also export a PENZD CSV for stakeout re-import
+
+# -------------------------------------------------------------------
+# Feature Code Mapping
+# -------------------------------------------------------------------
+# Each entry maps a survey code to a DXF layer and style.
+# Color numbers follow the AutoCAD Color Index (ACI):
+#   1=red  2=yellow  3=green  4=cyan  5=blue  6=magenta  7=white
+#
+# Override or extend as needed for your survey codes.
+feature_codes:
+
+  HC:
+    layer: "V-BLDG"
+    color: 7                # white
+    description: "House corner"
+    auto_connect: true      # Draw closed polyline connecting HC-1, HC-2, … in order
+
+  PC:
+    layer: "V-PROP"
+    color: 1                # red
+    description: "Property corner"
+    auto_connect: true
+
+  GR:
+    layer: "V-TOPO-SPOT"
+    color: 4                # cyan
+    description: "Grade shot"
+    label_elevation: true   # Place elevation value as text
+
+  TR:
+    layer: "V-PLNT-TREE"
+    color: 3                # green
+    description: "Tree"
+    draw_drip_circle: true  # Parse diameter from Description (e.g. D=14') and draw circle
+
+  FF:
+    layer: "V-NODE"
+    color: 7
+    description: "Finished floor elevation"
+    label_prefix: "FFE="
+    label_elevation: true
+
+  EL:
+    layer: "V-UTIL-ELEC"
+    color: 2                # yellow
+    description: "Electric"
+
+  GA:
+    layer: "V-UTIL-GAS"
+    color: 6                # magenta
+    description: "Gas"
+
+  WA:
+    layer: "V-UTIL-WATR"
+    color: 5                # blue
+    description: "Water"
+
+  SE:
+    layer: "V-UTIL-SEWR"
+    color: 3                # green
+    description: "Sewer"
+
+  CP:
+    layer: "V-SURV-CTRL"
+    color: 6                # magenta
+    description: "Control point"
+
+  BM:
+    layer: "V-SURV-CTRL"
+    color: 6
+    description: "Benchmark"
+    label_elevation: true
+
+  CB:
+    layer: "V-UTIL-SEWR"
+    color: 3
+    description: "Catch basin"
+
+  # --- Custom codes: add your own below ---
+  # POOL:
+  #   layer: "V-POOL-OUTLINE"
+  #   color: 4
+  #   description: "Pool perimeter shot"
+
+  # DK:
+  #   layer: "V-POOL-DECK"
+  #   color: 7
+  #   description: "Deck edge"
