@@ -34,8 +34,8 @@ with st.sidebar:
         "TX State Plane S. Central (US ft)": "EPSG:2278",
         "TX State Plane South (US ft)": "EPSG:2279",
         # --- Southeast ---
-        "UTM Zone 16N — AL, MS, TN, KY, western GA": "EPSG:32616",
-        "UTM Zone 17N — GA, SC, NC, VA (central/western)": "EPSG:32617",
+        "UTM Zone 16N — AL, MS, FL Panhandle, TN, KY, western GA": "EPSG:32616",
+        "UTM Zone 17N — FL Peninsula, GA, SC, NC, VA (central/western)": "EPSG:32617",
         "UTM Zone 18N — NC, VA (eastern / coast)": "EPSG:32618",
         "NC State Plane (US ft)": "EPSG:2264",
         "VA State Plane North (US ft)": "EPSG:2283",
