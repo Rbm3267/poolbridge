@@ -17,26 +17,120 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Match sidebar background to logo background color (#111B27)
-st.markdown(
-    """
-    <style>
-    [data-testid="stSidebar"] {
-        background-color: #111B27;
-    }
-    [data-testid="stSidebar"] * {
-        color: #FFFFFF !important;
-    }
-    [data-testid="stSidebar"] .stCaption p {
-        color: #9EAAB8 !important;
-    }
-    [data-testid="stSidebar"] hr {
-        border-color: #2A3A4A;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<style>
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+[data-testid="stSidebar"] {
+    background-color: #111B27;
+    border-right: 1px solid #1E2D3D;
+}
+
+/* Text */
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] .stMarkdown {
+    color: #E8EFF6 !important;
+}
+[data-testid="stSidebar"] .stCaption p {
+    color: #7B9BB5 !important;
+    font-size: 0.8rem !important;
+}
+
+/* Divider */
+[data-testid="stSidebar"] hr {
+    border-color: #2E4159 !important;
+}
+
+/* Selectbox — dark background, white text */
+[data-testid="stSidebar"] [data-baseweb="select"] > div {
+    background-color: #1A2A3A !important;
+    border-color: #2E4159 !important;
+    border-radius: 8px !important;
+}
+[data-testid="stSidebar"] [data-baseweb="select"] span,
+[data-testid="stSidebar"] [data-baseweb="select"] div {
+    color: #E8EFF6 !important;
+}
+[data-testid="stSidebar"] [data-baseweb="select"] svg {
+    fill: #7B9BB5 !important;
+}
+
+/* Text + number inputs */
+[data-testid="stSidebar"] input {
+    background-color: #1A2A3A !important;
+    border-color: #2E4159 !important;
+    border-radius: 8px !important;
+    color: #E8EFF6 !important;
+}
+[data-testid="stSidebar"] [data-baseweb="input"] {
+    background-color: #1A2A3A !important;
+    border-color: #2E4159 !important;
+}
+
+/* Expanders */
+[data-testid="stSidebar"] [data-testid="stExpander"] summary {
+    background-color: #1A2A3A !important;
+    border: 1px solid #2E4159 !important;
+    border-radius: 8px !important;
+    color: #E8EFF6 !important;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] > div:last-child {
+    background-color: #152030 !important;
+    border: 1px solid #2E4159 !important;
+    border-radius: 0 0 8px 8px !important;
+}
+
+/* Radio + checkbox labels */
+[data-testid="stSidebar"] .stRadio label,
+[data-testid="stSidebar"] .stCheckbox label {
+    color: #E8EFF6 !important;
+}
+
+/* ── MAIN AREA ───────────────────────────────────────────── */
+/* Primary convert button */
+button[kind="primary"] {
+    background: linear-gradient(135deg, #2EC4B6 0%, #0E7FA3 100%) !important;
+    border: none !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    letter-spacing: 0.02em !important;
+    padding: 0.55rem 2rem !important;
+    transition: opacity 0.15s, box-shadow 0.15s !important;
+}
+button[kind="primary"]:hover {
+    opacity: 0.9 !important;
+    box-shadow: 0 4px 14px rgba(46,196,182,0.35) !important;
+}
+
+/* File uploader area */
+[data-testid="stFileUploader"] section {
+    border: 2px dashed #2E4159 !important;
+    border-radius: 12px !important;
+}
+[data-testid="stFileUploader"] section:hover {
+    border-color: #2EC4B6 !important;
+    background-color: rgba(46,196,182,0.04) !important;
+}
+
+/* Download buttons */
+[data-testid="stDownloadButton"] button {
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+}
+
+/* Alert / success boxes */
+[data-testid="stAlert"] {
+    border-radius: 10px !important;
+}
+
+/* Headers */
+h1, h2, h3 { letter-spacing: -0.01em !important; }
+</style>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # Sidebar — settings
