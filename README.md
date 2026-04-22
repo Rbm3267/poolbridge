@@ -110,14 +110,15 @@ presets in the web app dropdown:
 
 | Region | Options |
 |--------|---------|
-| Texas | UTM 13N–15N, TX State Plane Central / S. Central / South |
-| Southeast | UTM 16N (AL/MS/TN/KY/western GA), UTM 17N (GA/SC/NC/VA central), UTM 18N (NC/VA coast) |
-| North Carolina | UTM 17N, UTM 18N, NC State Plane (EPSG:2264) |
-| South Carolina | UTM 17N, SC State Plane (EPSG:2273) |
-| Georgia | UTM 16N/17N, GA State Plane West (EPSG:2239), GA State Plane East (EPSG:2240) |
-| Virginia | UTM 17N, UTM 18N, VA State Plane North (EPSG:2283) / South (EPSG:2284) |
-| Florida | FL State Plane East (EPSG:2236) / West (EPSG:2237) / North (EPSG:2238) |
-| California | CA Zone III (EPSG:2227) |
+| Texas | UTM 13N–15N, TX State Plane (all 5 zones) |
+| Southeast | UTM 16N–18N, AL/MS/TN/NC/SC/VA/GA State Plane |
+| Florida | FL State Plane East / West / North |
+| Mid-Atlantic | UTM 18N–19N, NY/PA/NJ/MD/DE State Plane |
+| New England | UTM 19N, MA/CT/RI/VT/NH/ME State Plane |
+| Midwest | UTM 15N–16N, IL/IN/OH/MI/WI/MN/MO/KS State Plane |
+| Mountain West | UTM 12N–13N, CO/AZ/NM/UT/NV/ID/MT/WY State Plane |
+| Pacific Northwest | UTM 10N–11N, WA/OR State Plane |
+| California | UTM 10N–11N, CA State Plane Zones I–VI |
 | Any other | Custom EPSG code input |
 
 ---
