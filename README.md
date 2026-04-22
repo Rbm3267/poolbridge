@@ -2,6 +2,15 @@
   <img src="assets/poolbridge-mark-wordmark-dark.png" width="100%" alt="poolbridge">
 </div>
 
+<div align="center">
+
+[![PyPI](https://img.shields.io/pypi/v/poolbridge.svg)](https://pypi.org/project/poolbridge/)
+[![Python](https://img.shields.io/pypi/pyversions/poolbridge.svg)](https://pypi.org/project/poolbridge/)
+[![CI](https://github.com/rbm3267/poolbridge/actions/workflows/ci.yml/badge.svg)](https://github.com/rbm3267/poolbridge/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+</div>
+
 **Convert Emlid Reach RTK survey data to Structure Studios Pool Studio DXF format.**
 
 Poolbridge bridges the gap between modern GNSS field workflows and legacy pool
@@ -18,8 +27,7 @@ The easiest way to use poolbridge — no installation required.
 Upload your Emlid CSV, choose your coordinate system from the sidebar, enter
 your control points, and download the DXF.
 
-> **[Launch Poolbridge Web App →](https://share.streamlit.io)**
-> *(deploy your own free instance — see [Deploying the Web App](#deploying-the-web-app) below)*
+> Deploy your own free instance — see [Deploying the Web App](#deploying-the-web-app) below.
 
 ---
 
