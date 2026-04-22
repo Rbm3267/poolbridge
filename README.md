@@ -86,9 +86,13 @@ All Emlid export formats are supported out of the box:
 - **Smart features**:
   - Auto-draws drip-line circles for trees (`D=14'` in Description → CIRCLE)
   - Auto-connects property corners (PC-1…PC-4) and house corners (HC-1…HC-4)
-    as closed polylines
+    as closed polylines on V-PROP / V-BLDG
+  - Auto-connects easement boundaries (EB-1…) on V-EASEMENT
+  - Auto-connects setback boundaries (SB-1…) on V-SETBACK
   - Elevation callouts on grade shots (GR codes)
   - `FFE=` prefix labels on finished floor points
+- **Contour generation** — interpolates GR shots with scipy + marching-squares to
+  produce V-TOPO-MAJR / V-TOPO-MINR contour lines at user-defined intervals
 - **YAML/JSON config** — map any custom survey code to a layer, color, and behaviour
 - **Secondary PENZD CSV** export for stakeout re-import into Emlid Flow
 - **Z datum control** — set project elevation zero from a named point (e.g. FFE)
@@ -106,10 +110,12 @@ presets in the web app dropdown:
 |--------|---------|
 | Texas | UTM 13N–15N, TX State Plane Central / S. Central / South |
 | Southeast | UTM 16N (AL/MS/TN/KY/western GA), UTM 17N (GA/SC/NC/VA central), UTM 18N (NC/VA coast) |
-| North Carolina | UTM 17N, UTM 18N, NC State Plane (US ft) |
-| Virginia | UTM 17N, UTM 18N, VA State Plane North/South (US ft) |
-| Florida | FL State Plane East / West / North (US ft) |
-| California | CA Zone III (US ft) |
+| North Carolina | UTM 17N, UTM 18N, NC State Plane (EPSG:2264) |
+| South Carolina | UTM 17N, SC State Plane (EPSG:2273) |
+| Georgia | UTM 16N/17N, GA State Plane West (EPSG:2239), GA State Plane East (EPSG:2240) |
+| Virginia | UTM 17N, UTM 18N, VA State Plane North (EPSG:2283) / South (EPSG:2284) |
+| Florida | FL State Plane East (EPSG:2236) / West (EPSG:2237) / North (EPSG:2238) |
+| California | CA Zone III (EPSG:2227) |
 | Any other | Custom EPSG code input |
 
 ---
@@ -245,9 +251,9 @@ in a few seconds on next visit.
 ## Running Tests
 
 ```bash
-pip install pytest
+pip install pytest scipy
 pytest tests/ -v
-# 110 passed
+# 131 passed
 ```
 
 CI runs automatically on every pull request via GitHub Actions (Python 3.9, 3.11, 3.12).

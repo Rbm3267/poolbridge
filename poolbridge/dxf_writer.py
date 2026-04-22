@@ -155,7 +155,10 @@ class DXFWriter:
         self._draw_tree_circles(df, msp)
         self._auto_connect_sequence(df, msp, base_code="PC", layer="V-PROP", close=True)
         self._auto_connect_sequence(df, msp, base_code="HC", layer="V-BLDG", close=True)
+        self._auto_connect_sequence(df, msp, base_code="EB", layer="V-EASEMENT", close=True)
+        self._auto_connect_sequence(df, msp, base_code="SB", layer="V-SETBACK", close=True)
         self._draw_elevation_callouts(df, msp)
+        self._draw_contours(df, msp)
 
     def _draw_tree_circles(self, df: pd.DataFrame, msp: Modelspace) -> None:
         tree_rows = df[df.get("base_code", df["Code"]).astype(str).str.strip() == "TR"]
@@ -270,6 +273,53 @@ class DXFWriter:
                     "color": color,
                 },
             )
+
+    def _draw_contours(self, df: pd.DataFrame, msp: Modelspace) -> None:
+        """Generate and draw contour lines from GR (grade shot) points."""
+        import numpy as np
+        from poolbridge.contouring import generate_contours
+
+        contour_cfg = self.config.get("contours", {})
+        if not contour_cfg.get("enabled", False):
+            return
+
+        if "base_code" in df.columns:
+            mask = df["base_code"].astype(str).str.strip() == "GR"
+        else:
+            mask = df["Code"].astype(str).str.strip() == "GR"
+
+        gr = df[mask]
+        try:
+            cols = ["Easting", "Northing", "Elevation"]
+            gr_coords = gr[cols].apply(pd.to_numeric, errors="coerce").dropna()
+            x = gr_coords["Easting"].values
+            y = gr_coords["Northing"].values
+            z = gr_coords["Elevation"].values
+        except Exception:
+            return
+
+        major_segs, minor_segs = generate_contours(
+            x, y, z,
+            major_interval=float(contour_cfg.get("major_interval", 1.0)),
+            minor_interval=float(contour_cfg.get("minor_interval", 0.25)),
+            grid_cells=int(contour_cfg.get("grid_cells", 150)),
+        )
+
+        _CYAN = 4
+        for (x1, y1), (x2, y2) in major_segs:
+            msp.add_line(
+                (x1, y1), (x2, y2),
+                dxfattribs={"layer": "V-TOPO-MAJR", "color": _CYAN},
+            )
+        for (x1, y1), (x2, y2) in minor_segs:
+            msp.add_line(
+                (x1, y1), (x2, y2),
+                dxfattribs={"layer": "V-TOPO-MINR", "color": _CYAN},
+            )
+        logger.info(
+            "Drew %d major + %d minor contour segments",
+            len(major_segs), len(minor_segs),
+        )
 
 
 # ---------------------------------------------------------------------------

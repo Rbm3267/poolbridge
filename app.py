@@ -39,8 +39,11 @@ with st.sidebar:
         "UTM Zone 17N — FL Peninsula, GA, SC, NC, VA (central/western)": "EPSG:32617",
         "UTM Zone 18N — NC, VA (eastern / coast)": "EPSG:32618",
         "NC State Plane (US ft)": "EPSG:2264",
+        "SC State Plane (US ft)": "EPSG:2273",
         "VA State Plane North (US ft)": "EPSG:2283",
         "VA State Plane South (US ft)": "EPSG:2284",
+        "GA State Plane West (US ft)": "EPSG:2239",
+        "GA State Plane East (US ft)": "EPSG:2240",
         # --- Florida ---
         "FL State Plane East (US ft)": "EPSG:2236",
         "FL State Plane West (US ft)": "EPSG:2237",
@@ -98,6 +101,25 @@ with st.sidebar:
     elif z_method == "Fixed offset":
         offset = st.number_input("Offset (meters, added to all elevations)", value=0.0, format="%.4f")
         z_datum_cfg = {"method": "offset", "offset": float(offset)}
+
+    st.divider()
+    st.subheader("Contours")
+    st.caption(
+        "Generate V-TOPO-MAJR / V-TOPO-MINR contour lines from GR (grade shot) points. "
+        "Requires ≥ 3 GR shots and scipy."
+    )
+    contours_enabled = st.checkbox("Generate contour lines", value=False)
+    contour_cfg: dict = {"enabled": False}
+    if contours_enabled:
+        col1, col2 = st.columns(2)
+        major_int = col1.number_input("Major interval (ft)", value=1.0, min_value=0.1, format="%.2f")
+        minor_int = col2.number_input("Minor interval (ft)", value=0.25, min_value=0.05, format="%.2f")
+        contour_cfg = {
+            "enabled": True,
+            "major_interval": float(major_int),
+            "minor_interval": float(minor_int),
+            "grid_cells": 150,
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -176,6 +198,7 @@ if st.button("Convert to DXF", type="primary", disabled=not ready):
                             "control_points": control_points,
                         },
                         "z_datum": z_datum_cfg,
+                        "contours": contour_cfg,
                         "output": {
                             "dxf_version": "R2010",
                             "pdmode": 35,

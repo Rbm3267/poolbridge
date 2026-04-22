@@ -42,6 +42,12 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "text_height": 0.5,
         "export_penzd_csv": True,
     },
+    "contours": {
+        "enabled": False,
+        "major_interval": 1.0,   # feet
+        "minor_interval": 0.25,  # feet
+        "grid_cells": 150,
+    },
     "feature_codes": {
         "HC": {
             "layer": "V-BLDG",
@@ -119,6 +125,18 @@ DEFAULT_CONFIG: Dict[str, Any] = {
             "layer": "V-UTIL-SEWR",
             "color": _ACI_GREEN,
             "description": "Manhole",
+        },
+        "EB": {
+            "layer": "V-EASEMENT",
+            "color": _ACI_YELLOW,
+            "description": "Easement boundary",
+            "auto_connect": True,
+        },
+        "SB": {
+            "layer": "V-SETBACK",
+            "color": _ACI_YELLOW,
+            "description": "Setback boundary",
+            "auto_connect": True,
         },
     },
 }
