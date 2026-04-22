@@ -29,6 +29,30 @@ your control points, and download the DXF.
 
 > Deploy your own free instance — see [Deploying the Web App](#deploying-the-web-app) below.
 
+### Screenshots
+
+<table>
+<tr>
+<td width="70%">
+
+![Poolbridge main interface](assets/screenshot-full.png)
+
+</td>
+<td width="30%">
+
+![Sidebar settings](assets/screenshot-sidebar.png)
+
+</td>
+</tr>
+<tr>
+<td colspan="2">
+
+*Left: three-step workflow — upload, optional config, convert and download. Right: dark sidebar with CRS selector, localization control points, Z datum, and contour settings.*
+
+</td>
+</tr>
+</table>
+
 ---
 
 ## Problem Statement
