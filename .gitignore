@@ -7,3 +7,4 @@ build/
 *.dxf
 *_penzd.csv
 .pytest_cache/
+/test_data/
