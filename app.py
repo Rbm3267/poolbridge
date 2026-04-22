@@ -2,13 +2,43 @@
 
 import os
 import tempfile
+from collections import defaultdict
 
+import ezdxf
 import pandas as pd
 import streamlit as st
 import yaml
 
 from poolbridge.converter import PoolBridgeConverter
 from poolbridge.readers import read_file
+
+
+_LAYER_COLORS = {
+    "V-NODE": "#FFFFFF", "V-NODE-TEXT": "#FFFFFF",
+    "V-PROP": "#FF4444", "V-BLDG": "#FFFFFF",
+    "V-TOPO-SPOT": "#44DDDD", "V-TOPO-MAJR": "#44DDDD", "V-TOPO-MINR": "#88EEEE",
+    "V-PLNT-TREE": "#44BB44",
+    "V-UTIL-ELEC": "#FFFF44", "V-UTIL-GAS": "#FF44FF",
+    "V-UTIL-WATR": "#4444FF", "V-UTIL-SEWR": "#44BB44",
+    "V-SURV-CTRL": "#FF44FF",
+    "V-EASEMENT": "#FFFF44", "V-SETBACK": "#FFFF44",
+}
+
+
+def _layer_stats(dxf_path: str) -> pd.DataFrame:
+    doc = ezdxf.readfile(dxf_path)
+    msp = doc.modelspace()
+    counts: dict = defaultdict(lambda: defaultdict(int))
+    for ent in msp:
+        counts[ent.dxf.layer][ent.dxftype()] += 1
+    rows = []
+    for layer in sorted(counts):
+        total = sum(counts[layer].values())
+        types = "  ".join(
+            f"{t} ×{n}" for t, n in sorted(counts[layer].items(), key=lambda x: -x[1])
+        )
+        rows.append({"Layer": layer, "Entities": total, "Contents": types})
+    return pd.DataFrame(rows)
 
 st.set_page_config(
     page_title="Poolbridge",
@@ -381,6 +411,40 @@ if st.button("Convert to DXF", type="primary", disabled=not ready):
                     with st.expander(f"{len(result.warnings)} warning(s)"):
                         for w in result.warnings:
                             st.warning(w)
+
+                # Layer breakdown
+                stats_df = _layer_stats(output_dxf)
+                with st.expander(
+                    f"DXF layer breakdown — {len(stats_df)} layers", expanded=True
+                ):
+                    def _color_swatch(layer: str) -> str:
+                        hex_color = _LAYER_COLORS.get(layer, "#AAAAAA")
+                        return (
+                            f'<span style="display:inline-block;width:12px;height:12px;'
+                            f'border-radius:3px;background:{hex_color};'
+                            f'margin-right:6px;vertical-align:middle;"></span>'
+                        )
+
+                    rows_html = ""
+                    for _, row in stats_df.iterrows():
+                        swatch = _color_swatch(row["Layer"])
+                        rows_html += (
+                            f"<tr><td>{swatch}<code>{row['Layer']}</code></td>"
+                            f"<td style='text-align:center'><b>{row['Entities']}</b></td>"
+                            f"<td style='color:#888'>{row['Contents']}</td></tr>"
+                        )
+
+                    st.markdown(
+                        f"""<table style='width:100%;border-collapse:collapse;font-size:0.88rem'>
+                        <thead><tr>
+                          <th style='text-align:left;padding:4px 8px;border-bottom:1px solid #2E4159'>Layer</th>
+                          <th style='text-align:center;padding:4px 8px;border-bottom:1px solid #2E4159'>Entities</th>
+                          <th style='text-align:left;padding:4px 8px;border-bottom:1px solid #2E4159'>Breakdown</th>
+                        </tr></thead>
+                        <tbody>{rows_html}</tbody>
+                        </table>""",
+                        unsafe_allow_html=True,
+                    )
 
                 # Download buttons
                 st.subheader("Download outputs")
