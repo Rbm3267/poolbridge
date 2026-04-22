@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "poolbridge"
+version = "0.1.0"
+description = "Convert Emlid Reach survey data to Structure Studios Pool Studio DXF format"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Bennett Moore" }]
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+dependencies = [
+    "ezdxf>=1.1.0",
+    "pyproj>=3.4.0",
+    "pandas>=1.5.0",
+    "pyyaml>=6.0",
+    "numpy>=1.23.0",
+    "scipy>=1.9.0",
+    "pyshp>=2.3.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+poolbridge = "poolbridge.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/rbm3267/poolbridge"
+"Bug Tracker" = "https://github.com/rbm3267/poolbridge/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-data]
+"*" = ["assets/*.png"]
