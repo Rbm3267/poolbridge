@@ -17,6 +17,27 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Match sidebar background to logo background color (#111B27)
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #111B27;
+    }
+    [data-testid="stSidebar"] * {
+        color: #FFFFFF !important;
+    }
+    [data-testid="stSidebar"] .stCaption p {
+        color: #9EAAB8 !important;
+    }
+    [data-testid="stSidebar"] hr {
+        border-color: #2A3A4A;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # ---------------------------------------------------------------------------
 # Sidebar — settings
 # ---------------------------------------------------------------------------
