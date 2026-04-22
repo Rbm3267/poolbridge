@@ -1,5 +1,6 @@
 """Streamlit web interface for poolbridge."""
 
+import html
 import os
 import tempfile
 
@@ -8,7 +9,19 @@ import streamlit as st
 import yaml
 
 from poolbridge.converter import PoolBridgeConverter
+from poolbridge.dxf_utils import layer_stats
 from poolbridge.readers import read_file
+
+_LAYER_COLORS = {
+    "V-NODE": "#FFFFFF", "V-NODE-TEXT": "#FFFFFF",
+    "V-PROP": "#FF4444", "V-BLDG": "#FFFFFF",
+    "V-TOPO-SPOT": "#44DDDD", "V-TOPO-MAJR": "#44DDDD", "V-TOPO-MINR": "#88EEEE",
+    "V-PLNT-TREE": "#44BB44",
+    "V-UTIL-ELEC": "#FFFF44", "V-UTIL-GAS": "#FF44FF",
+    "V-UTIL-WATR": "#4444FF", "V-UTIL-SEWR": "#44BB44",
+    "V-SURV-CTRL": "#FF44FF",
+    "V-EASEMENT": "#FFFF44", "V-SETBACK": "#FFFF44",
+}
 
 st.set_page_config(
     page_title="Poolbridge",
@@ -474,6 +487,41 @@ if st.button("Convert to DXF", type="primary", disabled=not ready):
                     with st.expander(f"{len(result.warnings)} warning(s)"):
                         for w in result.warnings:
                             st.warning(w)
+
+                # Layer breakdown
+                stats_df = layer_stats(output_dxf)
+                with st.expander(
+                    f"DXF layer breakdown — {len(stats_df)} layers", expanded=True
+                ):
+                    def _color_swatch(lyr: str) -> str:
+                        hex_color = _LAYER_COLORS.get(lyr, "#AAAAAA")
+                        return (
+                            f'<span style="display:inline-block;width:12px;height:12px;'
+                            f'border-radius:3px;background:{hex_color};'
+                            f'margin-right:6px;vertical-align:middle;"></span>'
+                        )
+
+                    rows_html = "".join(
+                        f"<tr>"
+                        f"<td>{_color_swatch(row['Layer'])}"
+                        f"<code>{html.escape(row['Layer'])}</code></td>"
+                        f"<td style='text-align:center'><b>{int(row['Entities'])}</b></td>"
+                        f"<td style='color:#888'>{html.escape(row['Contents'])}</td>"
+                        f"</tr>"
+                        for _, row in stats_df.iterrows()
+                    )
+
+                    st.markdown(
+                        f"""<table style='width:100%;border-collapse:collapse;font-size:0.88rem'>
+                        <thead><tr>
+                          <th style='text-align:left;padding:4px 8px;border-bottom:1px solid #2E4159'>Layer</th>
+                          <th style='text-align:center;padding:4px 8px;border-bottom:1px solid #2E4159'>Entities</th>
+                          <th style='text-align:left;padding:4px 8px;border-bottom:1px solid #2E4159'>Breakdown</th>
+                        </tr></thead>
+                        <tbody>{rows_html}</tbody>
+                        </table>""",
+                        unsafe_allow_html=True,
+                    )
 
                 # Download buttons
                 st.subheader("Download outputs")
