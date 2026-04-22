@@ -111,7 +111,12 @@ def read_penzd_csv(path: str) -> pd.DataFrame:
     Returns:
         Normalised DataFrame.
     """
-    df = pd.read_csv(path, encoding=_CSV_ENCODING, dtype=str)
+    if _is_headerless_penzd(path):
+        col_names = ["Name", "Easting", "Northing", "Elevation", "Description"]
+        df = pd.read_csv(path, encoding=_CSV_ENCODING, dtype=str, header=None,
+                         names=col_names)
+    else:
+        df = pd.read_csv(path, encoding=_CSV_ENCODING, dtype=str)
     df.columns = [c.strip() for c in df.columns]
     df = df.apply(lambda col: col.str.strip() if col.dtype == object else col)
 
@@ -135,6 +140,13 @@ def read_penzd_csv(path: str) -> pd.DataFrame:
     if "Code" not in df.columns:
         df["Code"] = df.get("Name", pd.Series([""] * len(df))).apply(_code_from_name)
 
+    # For headerless files the Description column IS the feature code (e.g. "P", "L_1")
+    if "Description" in df.columns:
+        mask = df["Code"].eq("") & df["Description"].notna() & df["Description"].ne("")
+        df.loc[mask, "Code"] = df.loc[mask, "Description"].apply(
+            lambda v: v.split()[0].upper() if v else ""
+        )
+
     # PENZD has no lat/lon — mark as Local origin so reprojection is skipped
     if "Origin" not in df.columns:
         df["Origin"] = "Local"
@@ -157,6 +169,23 @@ def _auto_csv(path: str) -> pd.DataFrame:
         return read_penzd_csv(path)
 
     return read_emlid_csv(path)
+
+
+def _is_headerless_penzd(path: str) -> bool:
+    """Return True if the first line looks like numeric data rather than column names."""
+    with open(path, encoding=_CSV_ENCODING, errors="replace") as fh:
+        first = fh.readline().strip()
+    if not first:
+        return False
+    parts = first.split(",")
+    if len(parts) < 3:
+        return False
+    try:
+        float(parts[1])
+        float(parts[2])
+        return True
+    except ValueError:
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -298,11 +327,27 @@ def read_shapefile_zip(path: str) -> pd.DataFrame:
         Normalised DataFrame.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
+        real_tmpdir = os.path.realpath(tmpdir)
         with zipfile.ZipFile(path, "r") as zf:
+            for member in zf.namelist():
+                member_path = os.path.realpath(os.path.join(real_tmpdir, member))
+                if not member_path.startswith(real_tmpdir + os.sep):
+                    raise ValueError(f"Unsafe path in ZIP archive: {member}")
             zf.extractall(tmpdir)
-        shp_files = list(Path(tmpdir).rglob("*.shp"))
+        shp_files = sorted(Path(tmpdir).rglob("*.shp"))
         if not shp_files:
             raise ValueError(f"No .shp file found inside ZIP archive: {path}")
+        # Prefer a file named "Points" and skip non-point feature types
+        _POINT_TYPES = {1, 11, 21}
+        for shp in shp_files:
+            try:
+                import shapefile as _sf
+                sf = _sf.Reader(str(shp))
+                if sf.shapeType in _POINT_TYPES:
+                    return read_shapefile(str(shp))
+            except Exception:
+                continue
+        # Fallback: return first readable shapefile regardless of type
         return read_shapefile(str(shp_files[0]))
 
 
