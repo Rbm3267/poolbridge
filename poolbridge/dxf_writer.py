@@ -151,6 +151,13 @@ class DXFWriter:
     # Smart features
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _filter_by_code(df: pd.DataFrame, code: str) -> pd.DataFrame:
+        """Return rows whose base_code (or Code) matches *code*."""
+        if "base_code" in df.columns:
+            return df[df["base_code"].astype(str).str.strip() == code]
+        return df[df["Code"].astype(str).str.strip() == code]
+
     def _write_smart_features(self, df: pd.DataFrame, msp: Modelspace) -> None:
         self._draw_tree_circles(df, msp)
         self._auto_connect_sequence(df, msp, base_code="PC", layer="V-PROP", close=True)
@@ -240,12 +247,7 @@ class DXFWriter:
 
     def _draw_elevation_callouts(self, df: pd.DataFrame, msp: Modelspace) -> None:
         """Draw a POINT + elevation TEXT on V-TOPO-SPOT for GR (grade shot) codes."""
-        if "base_code" in df.columns:
-            mask = df["base_code"].astype(str).str.strip() == "GR"
-        else:
-            mask = df["Code"].astype(str).str.strip() == "GR"
-
-        gr_rows = df[mask]
+        gr_rows = self._filter_by_code(df, "GR")
         feat_cfg = get_feature_config(self.config, "GR")
         if not feat_cfg.get("label_elevation", True):
             return
@@ -276,19 +278,13 @@ class DXFWriter:
 
     def _draw_contours(self, df: pd.DataFrame, msp: Modelspace) -> None:
         """Generate and draw contour lines from GR (grade shot) points."""
-        import numpy as np
         from poolbridge.contouring import generate_contours
 
         contour_cfg = self.config.get("contours", {})
         if not contour_cfg.get("enabled", False):
             return
 
-        if "base_code" in df.columns:
-            mask = df["base_code"].astype(str).str.strip() == "GR"
-        else:
-            mask = df["Code"].astype(str).str.strip() == "GR"
-
-        gr = df[mask]
+        gr = self._filter_by_code(df, "GR")
         try:
             cols = ["Easting", "Northing", "Elevation"]
             gr_coords = gr[cols].apply(pd.to_numeric, errors="coerce").dropna()
@@ -305,17 +301,10 @@ class DXFWriter:
             grid_cells=int(contour_cfg.get("grid_cells", 150)),
         )
 
-        _CYAN = 4
         for (x1, y1), (x2, y2) in major_segs:
-            msp.add_line(
-                (x1, y1), (x2, y2),
-                dxfattribs={"layer": "V-TOPO-MAJR", "color": _CYAN},
-            )
+            msp.add_line((x1, y1), (x2, y2), dxfattribs={"layer": "V-TOPO-MAJR"})
         for (x1, y1), (x2, y2) in minor_segs:
-            msp.add_line(
-                (x1, y1), (x2, y2),
-                dxfattribs={"layer": "V-TOPO-MINR", "color": _CYAN},
-            )
+            msp.add_line((x1, y1), (x2, y2), dxfattribs={"layer": "V-TOPO-MINR"})
         logger.info(
             "Drew %d major + %d minor contour segments",
             len(major_segs), len(minor_segs),

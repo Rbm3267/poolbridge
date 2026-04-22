@@ -12,8 +12,12 @@ import logging
 import os
 import re
 import tempfile
-import xml.etree.ElementTree as ET
 import zipfile
+
+try:
+    import defusedxml.ElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET  # type: ignore[no-redef]
 from pathlib import Path
 from typing import Optional
 
@@ -298,7 +302,12 @@ def read_shapefile_zip(path: str) -> pd.DataFrame:
         Normalised DataFrame.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
+        real_tmpdir = os.path.realpath(tmpdir)
         with zipfile.ZipFile(path, "r") as zf:
+            for member in zf.namelist():
+                member_path = os.path.realpath(os.path.join(real_tmpdir, member))
+                if not member_path.startswith(real_tmpdir + os.sep):
+                    raise ValueError(f"Unsafe path in ZIP archive: {member}")
             zf.extractall(tmpdir)
         shp_files = list(Path(tmpdir).rglob("*.shp"))
         if not shp_files:

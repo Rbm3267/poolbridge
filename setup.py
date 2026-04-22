@@ -28,6 +28,7 @@ setup(
         "numpy>=1.23.0",
         "scipy>=1.9.0",
         "pyshp>=2.3.0",
+        "defusedxml>=0.7.0",
     ],
     extras_require={
         "dev": ["pytest>=7.0"],
