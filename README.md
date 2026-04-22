@@ -1,4 +1,6 @@
-# poolbridge
+<div align="center">
+  <img src="assets/poolbridge-wordmark.png" width="100%" alt="poolbridge">
+</div>
 
 **Convert Emlid Reach RTK survey data to Structure Studios Pool Studio DXF format.**
 
