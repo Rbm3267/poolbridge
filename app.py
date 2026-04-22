@@ -12,6 +12,7 @@ from poolbridge.readers import read_file
 
 st.set_page_config(
     page_title="Poolbridge",
+    page_icon="assets/poolbridge-icon-512.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -21,8 +22,7 @@ st.set_page_config(
 # ---------------------------------------------------------------------------
 
 with st.sidebar:
-    st.title("Poolbridge")
-    st.caption("Emlid survey → Pool Studio DXF")
+    st.image("assets/poolbridge-mark-wordmark-dark.png", use_container_width=True)
     st.divider()
 
     st.subheader("Coordinate System")
