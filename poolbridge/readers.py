@@ -336,7 +336,16 @@ def read_shapefile_zip(path: str) -> pd.DataFrame:
             zf.extractall(tmpdir)
         shp_files = sorted(Path(tmpdir).rglob("*.shp"))
         if not shp_files:
-            raise ValueError(f"No .shp file found inside ZIP archive: {path}")
+            names = [n.lower() for n in zipfile.ZipFile(path).namelist()]
+            if any(n.endswith(".obj") or n.endswith(".mtl") for n in names):
+                raise ValueError(
+                    f"This ZIP contains a 3D model (.obj) — only Shapefile ZIPs are supported. "
+                    f"Export your survey as Shapefile from Emlid Flow instead."
+                )
+            raise ValueError(
+                f"No Shapefile (.shp) found inside ZIP archive: {Path(path).name}. "
+                f"Expected a ZIP containing .shp, .dbf, and .shx files."
+            )
         # Prefer a file named "Points" and skip non-point feature types
         _POINT_TYPES = {1, 11, 21}
         for shp in shp_files:
