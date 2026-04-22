@@ -19,7 +19,7 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* ── SIDEBAR ─────────────────────────────────────────────── */
+/* ── SIDEBAR SHELL ───────────────────────────────────────── */
 [data-testid="stSidebar"] {
     background-color: #111B27;
     border-right: 1px solid #1E2D3D;
@@ -44,33 +44,70 @@ st.markdown("""
     border-color: #2E4159 !important;
 }
 
-/* Selectbox — dark background, white text */
-[data-testid="stSidebar"] [data-baseweb="select"] > div {
+/* ── SELECTBOX ───────────────────────────────────────────── */
+/* Kill any white background at every nesting level */
+[data-testid="stSidebar"] [data-baseweb="select"],
+[data-testid="stSidebar"] [data-baseweb="select"] > div,
+[data-testid="stSidebar"] [data-baseweb="select"] > div > div,
+[data-testid="stSidebar"] [data-baseweb="select"] > div > div > div {
     background-color: #1A2A3A !important;
     border-color: #2E4159 !important;
-    border-radius: 8px !important;
-}
-[data-testid="stSidebar"] [data-baseweb="select"] span,
-[data-testid="stSidebar"] [data-baseweb="select"] div {
     color: #E8EFF6 !important;
 }
+/* The visible trigger box */
+[data-testid="stSidebar"] [data-baseweb="select"] > div {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+/* Chevron icon */
 [data-testid="stSidebar"] [data-baseweb="select"] svg {
     fill: #7B9BB5 !important;
 }
+/* Displayed value text */
+[data-testid="stSidebar"] [data-baseweb="select"] span {
+    color: #E8EFF6 !important;
+}
+/* Dropdown popup (rendered in a portal, no sidebar ancestor) */
+[data-baseweb="popover"] [data-baseweb="menu"],
+[data-baseweb="popover"] [data-baseweb="menu"] ul,
+[data-baseweb="popover"] [data-baseweb="menu"] li {
+    background-color: #1A2A3A !important;
+    color: #E8EFF6 !important;
+}
+[data-baseweb="popover"] [data-baseweb="menu"] li:hover,
+[data-baseweb="popover"] [data-baseweb="menu"] [aria-selected="true"] {
+    background-color: #2E4159 !important;
+}
 
-/* Text + number inputs */
+/* ── TEXT + NUMBER INPUTS ────────────────────────────────── */
+/* Outer wrapper that BaseWeb calls "base-input" */
+[data-testid="stSidebar"] [data-baseweb="base-input"],
+[data-testid="stSidebar"] [data-baseweb="base-input"] > div {
+    background-color: #1A2A3A !important;
+    border-color: #2E4159 !important;
+    overflow: hidden !important;
+}
+[data-testid="stSidebar"] [data-baseweb="base-input"] {
+    border-radius: 8px !important;
+}
+/* The <input> element itself */
 [data-testid="stSidebar"] input {
     background-color: #1A2A3A !important;
     border-color: #2E4159 !important;
-    border-radius: 8px !important;
     color: #E8EFF6 !important;
+    border-radius: 0 !important; /* parent clips corners */
 }
-[data-testid="stSidebar"] [data-baseweb="input"] {
+/* Stepper +/- buttons in number inputs */
+[data-testid="stSidebar"] [data-baseweb="base-input"] button {
     background-color: #1A2A3A !important;
     border-color: #2E4159 !important;
+    color: #E8EFF6 !important;
+}
+[data-testid="stSidebar"] [data-baseweb="base-input"] button:hover {
+    background-color: #2E4159 !important;
 }
 
-/* Expanders */
+/* ── EXPANDERS ───────────────────────────────────────────── */
 [data-testid="stSidebar"] [data-testid="stExpander"] summary {
     background-color: #1A2A3A !important;
     border: 1px solid #2E4159 !important;
@@ -83,7 +120,7 @@ st.markdown("""
     border-radius: 0 0 8px 8px !important;
 }
 
-/* Radio + checkbox labels */
+/* ── RADIO + CHECKBOX ────────────────────────────────────── */
 [data-testid="stSidebar"] .stRadio label,
 [data-testid="stSidebar"] .stCheckbox label {
     color: #E8EFF6 !important;
