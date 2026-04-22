@@ -420,7 +420,7 @@ class TestReadShapefile:
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("readme.txt", "no shapefile here")
         try:
-            with pytest.raises(ValueError, match="No .shp"):
+            with pytest.raises(ValueError, match="No Shapefile"):
                 read_shapefile_zip(zip_path)
         finally:
             os.unlink(zip_path)
