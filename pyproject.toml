@@ -39,6 +39,3 @@ Homepage = "https://github.com/rbm3267/poolbridge"
 
 [tool.setuptools.packages.find]
 where = ["."]
-
-[tool.setuptools.package-data]
-"*" = ["assets/*.png"]
