@@ -290,14 +290,13 @@ class DXFWriter:
 
         gr = df[mask]
         try:
-            x = pd.to_numeric(gr["Easting"], errors="coerce").dropna().values
-            y = pd.to_numeric(gr["Northing"], errors="coerce").dropna().values
-            z = pd.to_numeric(gr["Elevation"], errors="coerce").dropna().values
+            cols = ["Easting", "Northing", "Elevation"]
+            gr_coords = gr[cols].apply(pd.to_numeric, errors="coerce").dropna()
+            x = gr_coords["Easting"].values
+            y = gr_coords["Northing"].values
+            z = gr_coords["Elevation"].values
         except Exception:
             return
-
-        valid = ~(np.isnan(x) | np.isnan(y) | np.isnan(z))
-        x, y, z = x[valid], y[valid], z[valid]
 
         major_segs, minor_segs = generate_contours(
             x, y, z,
